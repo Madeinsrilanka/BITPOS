@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>POSBIT Mobile | Manage Full POS</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- HTML5 QR Code -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- Firebase SDK (v9 Compatibility) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <style>
+        body { font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .tab-active { color: #4f46e5; }
+        .tab-active i { transform: translateY(-4px); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .animate-slide-up { animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        #reader { border-radius: 24px; overflow: hidden; border: none !important; }
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 pb-24">
+
+    <!-- Top Status Bar -->
+    <header class="sticky top-0 z-40 px-6 py-4 flex items-center justify-between glass mb-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+                <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-tight">POSBIT <span class="text-indigo-600">Pro</span></h1>
+                <p id="connection-status" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Disconnected
+                </p>
+            </div>
+        </div>
+        <button onclick="App.scanMode()" class="p-3 bg-white rounded-2xl shadow-sm border border-slate-100 active:scale-90 transition-transform">
+            <i data-lucide="scan" class="w-6 h-6 text-indigo-600"></i>
+        </button>
+    </header>
+
+    <!-- Main View Container -->
+    <main id="view-container" class="px-5">
+        <!-- Views will be injected here -->
+    </main>
+
+    <!-- Scanner Modal (Overlay) -->
+    <div id="scanner-modal" class="fixed inset-0 z-[100] bg-black hidden flex-col">
+        <div class="p-6 flex items-center justify-between text-white">
+            <h2 class="text-xl font-bold">Scan Barcode</h2>
+            <button onclick="App.stopScanner()" class="p-4 bg-white/10 rounded-full"><i data-lucide="x"></i></button>
+        </div>
+        <div class="flex-1 flex items-center justify-center px-6">
+            <div id="reader" class="w-full"></div>
+        </div>
+        <div class="p-10 text-center">
+            <p class="text-white/60 mb-8">Place barcode inside the frame</p>
+            <button onclick="App.stopScanner()" class="w-full py-4 bg-white/10 text-white rounded-2xl font-bold">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50 glass border-t-0 rounded-t-[40px] px-8 py-4 flex items-center justify-between premium-shadow safe-area-bottom">
+        <button onclick="App.navigate('dashboard')" class="nav-btn flex flex-col items-center gap-1 transition-all" data-view="dashboard">
+            <i data-lucide="layout-grid" class="w-6 h-6 transition-all"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">Home</span>
+        </button>
+        <button onclick="App.navigate('billing')" class="nav-btn flex flex-col items-center gap-1 transition-all" data-view="billing">
+            <i data-lucide="calculator" class="w-6 h-6 transition-all"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">Billing</span>
+        </button>
+        <button onclick="App.navigate('products')" class="nav-btn flex flex-col items-center gap-1 transition-all" data-view="products">
+            <i data-lucide="package" class="w-6 h-6 transition-all"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">Stock</span>
+        </button>
+        <button onclick="App.navigate('sales')" class="nav-btn flex flex-col items-center gap-1 transition-all" data-view="sales">
+            <i data-lucide="history" class="w-6 h-6 transition-all"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider">Sales</span>
+        </button>
+    </nav>
+
+    <!-- Scripts -->
+    <script>
+        /**
+         * Firebase Configuration
+         */
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "your-project.firebaseapp.com",
+            databaseURL: "https://your-project-default-rtdb.firebaseio.com",
+            projectId: "your-project",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
+
+        // Initialize Firebase
+        let db;
+        if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            document.getElementById('connection-status').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Online (Firebase)';
+        }
+
+        /**
+         * Application State
+         */
+        const State = {
+            products: [],
+            sales: [],
+            cart: [],
+            settings: { currency: "Rs." },
+            
+            async fetchData() {
+                if (!db) return;
+                const prodSnap = await db.ref('products').once('value');
+                this.products = Object.values(prodSnap.val() || {});
+                const salesSnap = await db.ref('sales').once('value');
+                this.sales = Object.values(salesSnap.val() || {}).reverse();
+            }
+        };
+
+        /**
+         * Core Logic
+         */
+        const App = {
+            currentView: 'dashboard',
+            scanner: null,
+
+            init() {
+                lucide.createIcons();
+                this.navigate('dashboard');
+                if (db) {
+                    db.ref('products').on('value', snap => {
+                        State.products = Object.values(snap.val() || {});
+                        if(this.currentView === 'products' || this.currentView === 'dashboard') this.render();
+                    });
+                }
+            },
+
+            navigate(view) {
+                this.currentView = view;
+                this.render();
+                
+                // Update Nav UI
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    if (btn.dataset.view === view) btn.classList.add('tab-active');
+                    else btn.classList.remove('tab-active');
+                });
+            },
+
+            render() {
+                const container = document.getElementById('view-container');
+                container.innerHTML = Views[this.currentView].render();
+                lucide.createIcons();
+                if(Views[this.currentView].afterRender) Views[this.currentView].afterRender();
+            },
+
+            // Scanner
+            scanMode() {
+                document.getElementById('scanner-modal').classList.remove('hidden');
+                document.getElementById('scanner-modal').classList.add('flex');
+                
+                this.scanner = new Html5Qrcode("reader");
+                this.scanner.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 150 } },
+                    (code) => {
+                        this.stopScanner();
+                        this.handleScan(code);
+                    }
+                );
+            },
+
+            stopScanner() {
+                if (this.scanner) {
+                    this.scanner.stop();
+                    this.scanner = null;
+                }
+                document.getElementById('scanner-modal').classList.add('hidden');
+            },
+
+            handleScan(code) {
+                if (this.currentView === 'billing') {
+                    Views.billing.addToCartByBarcode(code);
+                } else if (this.currentView === 'products') {
+                    // Logic to find and highlight product
+                    alert("Scanned: " + code);
+                } else {
+                    this.navigate('billing');
+                    setTimeout(() => Views.billing.addToCartByBarcode(code), 500);
+                }
+            }
+        };
+
+        /**
+         * View Components
+         */
+        const Views = {
+            dashboard: {
+                render() {
+                    const totalRevenue = State.sales.reduce((acc, s) => acc + s.total, 0);
+                    const todaySales = State.sales.filter(s => new Date(s.timestamp).toDateString() === new Date().toDateString());
+                    const todayRevenue = todaySales.reduce((acc, s) => acc + s.total, 0);
+
+                    return `
+                        <div class="animate-slide-up space-y-6">
+                            <!-- Stats Card -->
+                            <div class="bg-indigo-600 rounded-[32px] p-8 text-white shadow-2xl shadow-indigo-100 relative overflow-hidden">
+                                <div class="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                                <p class="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Today Revenue</p>
+                                <h2 class="text-4xl font-black mb-6">${State.settings.currency} ${todayRevenue.toLocaleString()}</h2>
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-white/20 rounded-2xl px-4 py-2 text-xs font-bold">${todaySales.length} Orders</div>
+                                    <div class="bg-white/20 rounded-2xl px-4 py-2 text-xs font-bold">${State.products.filter(p => p.stock < 10).length} Low Stock</div>
+                                </div>
+                            </div>
+
+                            <!-- Fast Actions -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <button onclick="App.navigate('billing')" class="bg-white p-6 rounded-[28px] shadow-sm border border-slate-100 flex flex-col items-center gap-3 active:scale-95 transition-all">
+                                    <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center">
+                                        <i data-lucide="plus-circle"></i>
+                                    </div>
+                                    <span class="font-bold text-sm">New Sale</span>
+                                </button>
+                                <button onclick="App.navigate('products')" class="bg-white p-6 rounded-[28px] shadow-sm border border-slate-100 flex flex-col items-center gap-3 active:scale-95 transition-all">
+                                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+                                        <i data-lucide="package"></i>
+                                    </div>
+                                    <span class="font-bold text-sm">Stock</span>
+                                </button>
+                            </div>
+
+                            <!-- Recent Items -->
+                            <div>
+                                <h3 class="font-black text-lg mb-4 flex items-center justify-between">
+                                    Recent Orders
+                                    <button class="text-indigo-600 text-xs font-bold">See All</button>
+                                </h3>
+                                <div class="space-y-3">
+                                    ${State.sales.slice(0, 5).map(s => `
+                                        <div class="bg-white p-4 rounded-2xl flex items-center justify-between shadow-sm border border-slate-50">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
+                                                    <i data-lucide="hash" class="w-4 h-4"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="font-bold text-sm text-slate-800">${s.invoiceNo}</p>
+                                                    <p class="text-[10px] text-slate-400 font-bold uppercase">${new Date(s.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="font-black text-indigo-600">${State.settings.currency}${s.total}</p>
+                                                <p class="text-[10px] text-slate-400 font-bold uppercase">${s.items.length} Items</p>
+                                            </div>
+                                        </div>
+                                    `).join('') || '<p class="text-center py-8 text-slate-300 font-bold">No sales today</p>'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+
+            billing: {
+                render() {
+                    return `
+                        <div class="animate-slide-up space-y-6">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-2xl font-black">Checkout</h2>
+                                <button onclick="Views.billing.clearCart()" class="text-rose-500 text-xs font-bold uppercase tracking-widest">Clear</button>
+                            </div>
+
+                            <div id="cart-items" class="space-y-3 min-h-[30vh]">
+                                ${State.cart.length ? State.cart.map(item => `
+                                    <div class="bg-white p-4 rounded-2xl flex items-center gap-4 shadow-sm border border-slate-50">
+                                        <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 font-bold">
+                                            ${item.quantity}
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-bold text-sm">${item.name}</p>
+                                            <p class="text-xs text-slate-400 font-bold">${State.settings.currency}${item.price}</p>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <button onclick="Views.billing.updateQty('${item.id}', -1)" class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center"><i data-lucide="minus" class="w-4 h-4"></i></button>
+                                            <button onclick="Views.billing.updateQty('${item.id}', 1)" class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                                        </div>
+                                    </div>
+                                `).join('') : `
+                                    <div class="flex flex-col items-center justify-center py-20 text-slate-300">
+                                        <i data-lucide="shopping-cart" class="w-16 h-16 mb-4 opacity-20"></i>
+                                        <p class="font-bold text-sm uppercase tracking-widest">Cart is empty</p>
+                                    </div>
+                                `}
+                            </div>
+
+                            <div class="bg-slate-900 rounded-[32px] p-8 text-white space-y-4">
+                                <div class="flex justify-between items-center text-white/60 text-sm">
+                                    <span>Subtotal</span>
+                                    <span class="font-bold">${State.settings.currency}${this.calculateSubtotal()}</span>
+                                </div>
+                                <div class="flex justify-between items-center text-lg font-black border-t border-white/10 pt-4">
+                                    <span>Total Amount</span>
+                                    <span class="text-indigo-400">${State.settings.currency}${this.calculateSubtotal()}</span>
+                                </div>
+                                <button onclick="Views.billing.checkout()" class="w-full py-5 bg-indigo-500 hover:bg-indigo-600 active:scale-95 transition-all rounded-2xl font-black text-lg shadow-xl shadow-indigo-500/20">
+                                    Complete Payment
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                },
+                calculateSubtotal() {
+                    return State.cart.reduce((acc, i) => acc + (i.price * i.quantity), 0).toFixed(2);
+                },
+                addToCartByBarcode(barcode) {
+                    const product = State.products.find(p => p.barcode === barcode);
+                    if (product) {
+                        this.addToCart(product);
+                        this.notify(`Added ${product.name}`);
+                    } else {
+                        alert("Product not found: " + barcode);
+                    }
+                },
+                addToCart(product) {
+                    const existing = State.cart.find(i => i.id === product.id);
+                    if (existing) {
+                        existing.quantity++;
+                    } else {
+                        State.cart.push({ ...product, price: parseFloat(product.sellingPrice), quantity: 1 });
+                    }
+                    App.render();
+                },
+                updateQty(id, delta) {
+                    const item = State.cart.find(i => i.id === id);
+                    if (item) {
+                        item.quantity += delta;
+                        if (item.quantity <= 0) State.cart = State.cart.filter(i => i.id !== id);
+                    }
+                    App.render();
+                },
+                clearCart() {
+                    State.cart = [];
+                    App.render();
+                },
+                async checkout() {
+                    if (State.cart.length === 0) return;
+                    
+                    const sale = {
+                        items: State.cart,
+                        total: parseFloat(this.calculateSubtotal()),
+                        timestamp: new Date().toISOString(),
+                        invoiceNo: "INV-" + Date.now().toString().slice(-6)
+                    };
+
+                    if (db) {
+                        const newSaleRef = db.ref('sales').push();
+                        sale.id = newSaleRef.key;
+                        await newSaleRef.set(sale);
+                        
+                        // Update stock
+                        for(const item of State.cart) {
+                            const p = State.products.find(prod => prod.id === item.id);
+                            if(p) {
+                                const newStock = Math.max(0, p.stock - item.quantity);
+                                await db.ref('products').child(item.id).update({ stock: newStock });
+                            }
+                        }
+                    }
+
+                    this.notify("Sale Successful!");
+                    this.clearCart();
+                    App.navigate('dashboard');
+                },
+                notify(msg) {
+                    // Simple alert for now
+                }
+            },
+
+            products: {
+                render() {
+                    return `
+                        <div class="animate-slide-up space-y-6">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-2xl font-black tracking-tight">Inventory</h2>
+                                <button onclick="Views.products.showAddModal()" class="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100"><i data-lucide="plus"></i></button>
+                            </div>
+
+                            <div class="relative">
+                                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                <input type="text" placeholder="Search products..." class="w-full pl-12 pr-4 py-4 bg-white rounded-2xl border border-slate-100 shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                            </div>
+
+                            <div class="space-y-3">
+                                ${State.products.map(p => `
+                                    <div class="bg-white p-5 rounded-[28px] shadow-sm border border-slate-50 flex items-center justify-between">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-14 h-14 bg-slate-50 rounded-2xl flex flex-col items-center justify-center text-slate-400">
+                                                <span class="text-[10px] font-bold uppercase tracking-tighter">Stock</span>
+                                                <span class="text-lg font-black text-slate-800 ${p.stock < 10 ? 'text-rose-500' : ''}">${p.stock}</span>
+                                            </div>
+                                            <div>
+                                                <p class="font-black text-sm text-slate-800">${p.name}</p>
+                                                <p class="text-[10px] text-slate-400 font-bold uppercase">${p.category || 'General'}</p>
+                                                <p class="text-xs font-bold text-indigo-600 tracking-tight">${State.settings.currency}${p.sellingPrice}</p>
+                                            </div>
+                                        </div>
+                                        <button onclick="Views.products.editStock('${p.id}')" class="p-3 bg-slate-50 rounded-xl text-slate-400"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                    </div>
+                                `).join('') || '<p class="text-center py-20 text-slate-300 font-bold uppercase tracking-widest">No products found</p>'}
+                            </div>
+                        </div>
+                    `;
+                },
+                showAddModal() {
+                    const name = prompt("Product Name:");
+                    const price = prompt("Selling Price:");
+                    const stock = prompt("Initial Stock:");
+                    const barcode = prompt("Barcode (optional):");
+                    
+                    if(name && price) {
+                        const newProd = {
+                            id: Date.now().toString(),
+                            name,
+                            sellingPrice: price,
+                            stock: parseInt(stock) || 0,
+                            barcode: barcode || "",
+                            category: "General"
+                        };
+                        if(db) db.ref('products').child(newProd.id).set(newProd);
+                    }
+                },
+                editStock(id) {
+                    const p = State.products.find(prod => prod.id === id);
+                    const newStock = prompt(`Update stock for ${p.name}:`, p.stock);
+                    if (newStock !== null) {
+                        if(db) db.ref('products').child(id).update({ stock: parseInt(newStock) });
+                    }
+                }
+            },
+
+            sales: {
+                render() {
+                    return `
+                        <div class="animate-slide-up space-y-6">
+                            <h2 class="text-2xl font-black">Sales History</h2>
+                            <div class="space-y-3">
+                                ${State.sales.map(s => `
+                                    <div class="bg-white p-5 rounded-[28px] shadow-sm border border-slate-50 space-y-4">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                                                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="font-black text-sm">${s.invoiceNo}</p>
+                                                    <p class="text-[10px] text-slate-400 font-bold uppercase">${new Date(s.timestamp).toLocaleDateString()}</p>
+                                                </div>
+                                            </div>
+                                            <p class="font-black text-indigo-600 text-lg">${State.settings.currency}${s.total}</p>
+                                        </div>
+                                        <div class="flex gap-1 overflow-x-auto pb-1">
+                                            ${s.items.map(i => `<span class="whitespace-nowrap px-3 py-1 bg-slate-50 rounded-lg text-[9px] font-bold text-slate-400 uppercase tracking-widest border border-slate-100">${i.name} x${i.quantity}</span>`).join('')}
+                                        </div>
+                                    </div>
+                                `).join('') || '<p class="text-center py-20 text-slate-300 font-bold">No sales records</p>'}
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        };
+
+        // Initialize session
+        window.onload = async () => {
+            await State.fetchData();
+            App.init();
+        };
+
+    </script>
+</body>
+</html>
