@@ -4,7 +4,8 @@ const state = {
     settings: {
         shopName: 'PIXEL POS',
         shopAddress: '123 Tech Avenue, Colombo',
-        currency: 'Rs.'
+        currency: 'Rs.',
+        shopLogo: null
     },
     products: [
         { id: '1', name: 'Premium Ceylon Tea', price: 1250, stock: 45, barcode: '12345678' },
@@ -66,6 +67,13 @@ function saveData() {
 // --- Core Rendering Logic ---
 
 function updateHeader() {
+    const logoContainer = document.querySelector('.header-logo');
+    if (state.settings.shopLogo) {
+        logoContainer.innerHTML = `<img src="${state.settings.shopLogo}" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-md);">`;
+    } else {
+        logoContainer.innerHTML = `<i class="fas fa-bolt"></i>`;
+    }
+
     document.getElementById('header-shop-name').textContent = state.settings.shopName;
     const titles = {
         'pos-view': 'Terminal',
@@ -123,10 +131,13 @@ function renderInventory() {
                     ${state.settings.currency} ${parseFloat(product.price).toFixed(2)} • Barcode: ${product.barcode || 'N/A'}
                 </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <span class="stock-lvl ${stockStatus}">${product.stock} units</span>
-                <button class="icon-btn" style="width: 32px; height: 32px;" onclick="editProduct('${product.id}')">
-                    <i class="fas fa-pen" style="font-size: 0.75rem;"></i>
+                <button class="icon-btn" style="width: 32px; height: 32px; border-color: var(--accent);" onclick="editProduct('${product.id}')">
+                    <i class="fas fa-pen" style="font-size: 0.75rem; color: var(--accent);"></i>
+                </button>
+                <button class="icon-btn" style="width: 32px; height: 32px; border-color: var(--danger);" onclick="deleteProduct('${product.id}')">
+                    <i class="fas fa-trash" style="font-size: 0.75rem; color: var(--danger);"></i>
                 </button>
             </div>
         `;
@@ -146,6 +157,7 @@ function renderTransactions() {
     [...state.transactions].reverse().forEach(t => {
         const card = document.createElement('div');
         card.className = 'transaction-card';
+        card.onclick = () => showTransactionReceipt(t);
         card.innerHTML = `
             <div class="trans-top">
                 <h5>Order #${t.id.slice(-4)}</h5>
@@ -229,9 +241,22 @@ function setupEventListeners() {
         state.settings.shopName = document.getElementById('shop-name-input').value;
         state.settings.shopAddress = document.getElementById('shop-address-input').value;
         state.settings.currency = document.getElementById('currency-input').value;
-        saveData();
-        renderUI();
-        showToast('Settings Updated');
+        
+        const logoFile = document.getElementById('shop-logo-input').files[0];
+        if (logoFile) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                state.settings.shopLogo = event.target.result;
+                saveData();
+                renderUI();
+                showToast('Settings Updated');
+            };
+            reader.readAsDataURL(logoFile);
+        } else {
+            saveData();
+            renderUI();
+            showToast('Settings Updated');
+        }
     });
 
     // Cart Modal Controls
@@ -337,6 +362,7 @@ function completeTransaction() {
     saveData();
     renderUI();
     closeModal('cart-modal');
+    showTransactionReceipt(transaction);
     showToast('Sale Completed!', 'success');
 }
 
@@ -414,6 +440,60 @@ function editProduct(id) {
     openProductModal(id);
 }
 
+function deleteProduct(id) {
+    if (confirm('Are you sure you want to delete this product?')) {
+        state.products = state.products.filter(p => p.id !== id);
+        saveData();
+        renderUI();
+        showToast('Product Deleted', 'error');
+    }
+}
+
+function showTransactionReceipt(transaction) {
+    const modal = document.createElement('div');
+    modal.className = 'full-modal glass show';
+    modal.id = 'receipt-modal';
+    
+    let itemsHtml = transaction.items.map(item => `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+            <span>${item.name} x ${item.quantity}</span>
+            <span>${state.settings.currency} ${(item.price * item.quantity).toFixed(2)}</span>
+        </div>
+    `).join('');
+
+    modal.innerHTML = `
+        <div class="modal-header">
+            <h3>Order Details</h3>
+            <button class="close-modal-btn" onclick="this.closest('#receipt-modal').remove()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body scrollable">
+            <div class="receipt-card glass" style="padding: 1.5rem; border-radius: var(--radius-lg); border: 1px dashed var(--glass-border);">
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <h4 style="font-size: 1.2rem; font-weight: 800;">${state.settings.shopName}</h4>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary);">${state.settings.shopAddress}</p>
+                </div>
+                <div style="border-top: 1px dashed rgba(255,255,255,0.1); border-bottom: 1px dashed rgba(255,255,255,0.1); padding: 1rem 0; margin-bottom: 1rem;">
+                    ${itemsHtml}
+                </div>
+                <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 1.1rem;">
+                    <span>Grand Total</span>
+                    <span>${state.settings.currency} ${transaction.total.toFixed(2)}</span>
+                </div>
+                <div style="text-align: center; margin-top: 2rem; font-size: 0.75rem; color: var(--text-secondary);">
+                    <p>Transaction ID: ${transaction.id}</p>
+                    <p>${new Date(transaction.date).toLocaleString()}</p>
+                    <p style="margin-top: 1rem; font-weight: 700;">THANK YOU FOR YOUR VISIT!</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button class="action-btn-danger flex" onclick="this.closest('#receipt-modal').remove()">Close</button>
+                <button class="action-btn-primary flex" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
 // --- Utilities ---
 
 function showToast(msg, type = 'success') {
@@ -469,6 +549,8 @@ function stopScanner() {
 
 function onScanSuccess(code) {
     stopScanner();
+    
+    // Case 1: POS View - Add to cart
     if (state.currentView === 'pos-view') {
         const p = state.products.find(prod => prod.barcode === code);
         if (p) {
@@ -477,8 +559,27 @@ function onScanSuccess(code) {
         } else {
             showToast("Unregistered Barcode", 'error');
         }
-    } else {
+        return;
+    }
+
+    // Case 2: Product Modal is open - Fill barcode field
+    const productModal = document.getElementById('product-modal');
+    if (productModal.classList.contains('show')) {
         const inp = document.getElementById('prod-barcode-input');
         if (inp) inp.value = code;
+        return;
+    }
+
+    // Case 3: Inventory View - Find and highlight product
+    if (state.currentView === 'products-view') {
+        const p = state.products.find(prod => prod.barcode === code);
+        if (p) {
+            editProduct(p.id);
+        } else {
+            if (confirm("Barcode not found. Add as new product?")) {
+                openProductModal();
+                document.getElementById('prod-barcode-input').value = code;
+            }
+        }
     }
 }

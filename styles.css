@@ -310,6 +310,14 @@ main::-webkit-scrollbar { display: none; }
     background: rgba(255,255,255,0.02);
     padding: 1.25rem; border-radius: var(--radius-lg);
     margin-bottom: 1rem;
+    cursor: pointer;
+    transition: 0.2s;
+    border: 1px solid transparent;
+}
+
+.transaction-card:active {
+    transform: scale(0.98);
+    background: rgba(255,255,255,0.05);
 }
 
 .trans-top { display: flex; justify-content: space-between; margin-bottom: 10px; }
