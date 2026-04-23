@@ -1,154 +1,356 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POSBIT | Clothing Shop POS</title>
-    <!-- SEO -->
-    <meta name="description" content="Professional POS system for clothing shops. Manage inventory, billing, and sales with ease.">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- JsBarcode -->
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <title>Freezetech | Premium Digital Ecosystem</title>
     
-    <!-- Socket.io Client -->
-    <script src="/socket.io/socket.io.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
-    <!-- Custom Style -->
-    <link rel="stylesheet" href="styles.css">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        primary: '#4f46e5',
-                        secondary: '#64748b',
+                        background: '#09090b', // Zinc 950 (Ultra dark, not pure black)
+                        surface: '#18181b',    // Zinc 900
+                        borderLine: 'rgba(255, 255, 255, 0.08)',
                     }
                 }
             }
         }
     </script>
+
+    <style>
+        body {
+            background-color: theme('colors.background');
+            color: #ffffff;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Subtle Top Glow (Very minimal, just to separate background from top) */
+        .ambient-glow {
+            position: absolute;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80vw;
+            height: 50vh;
+            background: radial-gradient(ellipse at top, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Minimal Glass Navbar */
+        .nav-glass {
+            background: rgba(9, 9, 11, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid theme('colors.borderLine');
+        }
+
+        /* Premium Bento Cards */
+        .bento-card {
+            background: rgba(24, 24, 27, 0.4); /* Zinc 900 with opacity */
+            border: 1px solid theme('colors.borderLine');
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .bento-card:hover {
+            background: rgba(24, 24, 27, 0.8);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Minimal Text Gradient for Headings */
+        .text-shimmer {
+            background: linear-gradient(to right, #ffffff 20%, #a1a1aa 50%, #ffffff 80%);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            animation: shimmer 4s linear infinite;
+        }
+
+        @keyframes shimmer {
+            to { background-position: 200% center; }
+        }
+
+        /* Premium White Button */
+        .btn-premium {
+            background: #ffffff;
+            color: #09090b;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px 0 rgba(255, 255, 255, 0.1);
+        }
+        .btn-premium:hover {
+            background: #e4e4e7;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
+        }
+
+        /* Minimal Outline Button */
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Modals */
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-backdrop.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .modal-content {
+            transform: translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal-backdrop.active .modal-content {
+            transform: translateY(0);
+        }
+
+        /* Custom Scrollbar for a clean look */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+    </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
-    
-    <!-- Sidebar -->
-    <aside id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-slate-900 text-white z-50 transform -translate-x-full lg:translate-x-0 sidebar-transition">
-        <div class="p-6 flex items-center gap-3">
-            <div class="w-10 h-10 bg-indigo-500 rounded-lg flex items-center justify-center">
-                <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+<body>
+
+    <div class="ambient-glow"></div>
+
+    <nav class="fixed w-full z-50 nav-glass py-4 px-6 md:px-12">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="#" class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
+                    <i class="ph-bold ph-cube text-xl text-background"></i>
+                </div>
+                <span class="text-lg font-semibold tracking-tight">Freezetech</span>
+            </a>
+            <div class="hidden md:flex gap-8 text-sm text-zinc-400 font-medium">
+                <a href="#ecosystem" class="hover:text-white transition-colors">Products</a>
+                <a href="#features" class="hover:text-white transition-colors">Features</a>
+                <button onclick="openModal('privacy')" class="hover:text-white transition-colors">Privacy</button>
             </div>
-            <h1 class="text-xl font-bold tracking-tight">POSBIT</h1>
+            <a href="#ecosystem" class="btn-premium text-sm font-semibold px-5 py-2 rounded-full">
+                Get Started
+            </a>
         </div>
-        
-        <nav class="mt-6 px-4 space-y-2">
-            <a href="#" onclick="Router.navigate('dashboard')" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10" data-page="dashboard">
-                <i data-lucide="layout-dashboard" class="w-5 h-5 text-indigo-400"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="#" onclick="Router.navigate('billing')" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10" data-page="billing">
-                <i data-lucide="calculator" class="w-5 h-5 text-indigo-400"></i>
-                <span>Billing</span>
-            </a>
-            <a href="#" onclick="Router.navigate('products')" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10" data-page="products">
-                <i data-lucide="package" class="w-5 h-5 text-indigo-400"></i>
-                <span>Products</span>
-            </a>
-            <a href="#" onclick="Router.navigate('sales')" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10" data-page="sales">
-                <i data-lucide="history" class="w-5 h-5 text-indigo-400"></i>
-                <span>Sales</span>
-            </a>
-            <a href="#" onclick="Router.navigate('reports')" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10" data-page="reports">
-                <i data-lucide="bar-chart-3" class="w-5 h-5 text-indigo-400"></i>
-                <span>Reports</span>
-            </a>
-            <a href="#" onclick="Router.navigate('settings')" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-white/10" data-page="settings">
-                <i data-lucide="settings" class="w-5 h-5 text-indigo-400"></i>
-                <span>Settings</span>
-            </a>
-        </nav>
+    </nav>
 
-        <div class="absolute bottom-8 px-8 w-full">
-            <div onclick="UI.logout()" class="pt-4 border-t border-white/10 flex items-center gap-3 text-slate-400 hover:text-white cursor-pointer transition-colors">
-                <i data-lucide="log-out" class="w-5 h-5"></i>
-                <span>Logout</span>
+    <section class="relative min-h-screen flex items-center justify-center pt-24 px-6">
+        <div class="max-w-4xl mx-auto text-center z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 mb-8 fade-up text-xs font-medium text-zinc-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                100% Free Ecosystem. Open to everyone.
             </div>
-        </div>
-    </aside>
-
-    <!-- Overlay -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="UI.toggleSidebar()"></div>
-
-    <!-- Main Content -->
-    <main class="lg:ml-64 min-h-screen transition-all duration-300">
-        <!-- Top Bar -->
-        <header class="sticky top-0 z-30 flex items-center justify-between p-4 lg:p-6 glass mb-6 mt-2 mx-4 rounded-2xl premium-shadow">
-            <div class="flex items-center gap-4">
-                <button onclick="UI.toggleSidebar()" class="lg:hidden p-2 hover:bg-slate-100 rounded-xl transition-colors">
-                    <i data-lucide="menu" class="w-6 h-6 text-slate-700"></i>
+            
+            <h1 class="text-5xl md:text-7xl font-semibold tracking-tighter mb-6 fade-up text-shimmer" style="animation-delay: 0.1s;">
+                Build your workflow <br> with precision.
+            </h1>
+            
+            <p class="text-lg text-zinc-400 max-w-2xl mx-auto mb-10 fade-up font-light" style="animation-delay: 0.2s;">
+                A minimal, high-performance suite of tools including Point of Sale and VPN services. Designed for modern professionals, completely free.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center fade-up" style="animation-delay: 0.3s;">
+                <a href="#ecosystem" class="btn-premium px-6 py-3 rounded-full text-sm font-semibold flex items-center justify-center gap-2">
+                    Explore Ecosystem
+                </a>
+                <button onclick="openModal('terms')" class="btn-outline px-6 py-3 rounded-full text-sm font-semibold flex items-center justify-center gap-2">
+                    Read the Docs
                 </button>
-                <div id="page-title-container">
-                    <h2 id="page-title" class="text-xl lg:text-2xl font-black text-slate-800 tracking-tight">Dashboard</h2>
-                    <p id="page-subtitle" class="text-slate-400 text-xs font-bold uppercase tracking-widest hidden sm:block">Control Center</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="ecosystem" class="py-24 px-6 md:px-12 relative z-10">
+        <div class="max-w-6xl mx-auto">
+            <div class="mb-12">
+                <h2 class="text-2xl md:text-3xl font-semibold mb-3 tracking-tight">Our Products</h2>
+                <p class="text-zinc-400 text-sm md:text-base">One unified architecture for your operations.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bento-card md:col-span-2 p-8 flex flex-col justify-between group">
+                    <div class="flex justify-between items-start mb-12">
+                        <div class="w-12 h-12 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
+                            <i class="ph ph-desktop text-2xl text-zinc-200"></i>
+                        </div>
+                        <span class="text-xs font-medium text-zinc-500 bg-white/5 px-3 py-1 rounded-full border border-white/5">v1.0 Live</span>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-2 tracking-tight">Pixelpos</h3>
+                        <p class="text-zinc-400 text-sm max-w-md mb-6 leading-relaxed">
+                            A highly optimized desktop & web Point of Sale. Manage your inventory and track sales with an interface that gets out of your way.
+                        </p>
+                        <a href="#" class="inline-flex items-center gap-2 text-sm font-medium text-white hover:text-zinc-300 transition-colors">
+                            Launch Web App <i class="ph-bold ph-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bento-card p-8 flex flex-col justify-between group">
+                    <div class="mb-12">
+                        <div class="w-12 h-12 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
+                            <i class="ph ph-shield-check text-2xl text-zinc-200"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2 tracking-tight">PixelVpn</h3>
+                        <p class="text-zinc-400 text-sm mb-6 leading-relaxed">
+                            Secure, log-free browsing with military-grade encryption. Fast and entirely free.
+                        </p>
+                        <a href="#" class="inline-flex items-center gap-2 text-sm font-medium text-white hover:text-zinc-300 transition-colors">
+                            Download <i class="ph-bold ph-download-simple"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bento-card md:col-span-3 p-8 flex flex-col md:flex-row items-center justify-between group">
+                    <div class="md:w-2/3 mb-6 md:mb-0">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
+                                <i class="ph ph-device-mobile text-2xl text-zinc-200"></i>
+                            </div>
+                            <h3 class="text-2xl font-semibold tracking-tight">Pixelpos Mobile</h3>
+                        </div>
+                        <p class="text-zinc-400 text-sm max-w-xl leading-relaxed">
+                            Extend your point of sale to your pocket. Scan items using your camera, accept payments, and sync instantly to your main database.
+                        </p>
+                    </div>
+                    <div>
+                        <button class="btn-premium px-6 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap">
+                            Get the App
+                        </button>
+                    </div>
                 </div>
             </div>
-            
-            <div class="flex items-center gap-4">
-                <div class="hidden md:flex flex-col items-end">
-                    <span id="shop-name-display" class="font-bold text-sm text-indigo-600">POSBIT Store</span>
-                    <span id="date-display" class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">Loading...</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-indigo-600 shadow-lg shadow-indigo-200 flex items-center justify-center text-white font-black">
-                    A
-                </div>
+        </div>
+    </section>
+
+    <footer class="border-t border-white/10 py-10 px-6 mt-10">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2 text-zinc-300">
+                <i class="ph-fill ph-cube text-lg"></i>
+                <span class="font-medium text-sm">Freezetech</span>
             </div>
-        </header>
-
-        <!-- View Container -->
-        <div id="view-container" class="px-4 lg:px-8 pb-12 animate-fade-in">
-            <!-- Dynamic Content Injected Here -->
+            <div class="flex gap-6 text-xs text-zinc-500 font-medium">
+                <button onclick="openModal('privacy')" class="hover:text-zinc-300 transition-colors">Privacy</button>
+                <button onclick="openModal('terms')" class="hover:text-zinc-300 transition-colors">Terms</button>
+                <span class="text-zinc-600">|</span>
+                <span class="text-zinc-500">Built by Shafeer Cassim</span>
+            </div>
         </div>
-    </main>
+    </footer>
 
-    <!-- Receipt Print Area (Invisible on screen) -->
-    <div id="receipt-print-area">
-        <!-- Receipt Content Injected Here -->
+    <div id="modal-privacy" class="fixed inset-0 z-[100] modal-backdrop flex items-center justify-center p-4">
+        <div class="modal-content w-full max-w-lg bg-[#18181b] border border-white/10 rounded-2xl p-6 md:p-8 flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                <h2 class="text-lg font-semibold tracking-tight text-white">Privacy Policy</h2>
+                <button onclick="closeModal('privacy')" class="text-zinc-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-full p-1.5">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+            <div class="overflow-y-auto text-zinc-400 text-sm space-y-4 pr-2">
+                <p>At Freezetech, we believe your data is yours. This policy outlines our minimalist approach to data collection.</p>
+                <h3 class="text-zinc-200 font-medium mt-4">Zero-Log Architecture</h3>
+                <p>Pixelpos and PixelVpn are designed to operate without tracking your personal usage. We do not sell data to third parties.</p>
+                <h3 class="text-zinc-200 font-medium mt-4">Local Storage</h3>
+                <p>Where possible, your data remains strictly on your device or the secure servers you explicitly connect to.</p>
+            </div>
+            <div class="mt-8 pt-4 border-t border-white/10 text-right">
+                <button onclick="closeModal('privacy')" class="btn-premium px-5 py-2 rounded-lg text-sm font-medium">Got it</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Modals Container -->
-    <div id="modal-container" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div id="modal-content" class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all scale-95 opacity-0">
-            <!-- Modal body injected here -->
+    <div id="modal-terms" class="fixed inset-0 z-[100] modal-backdrop flex items-center justify-center p-4">
+        <div class="modal-content w-full max-w-lg bg-[#18181b] border border-white/10 rounded-2xl p-6 md:p-8 flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                <h2 class="text-lg font-semibold tracking-tight text-white">Terms of Service</h2>
+                <button onclick="closeModal('terms')" class="text-zinc-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-full p-1.5">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+            <div class="overflow-y-auto text-zinc-400 text-sm space-y-4 pr-2">
+                <p>By accessing the Freezetech ecosystem, you agree to the following terms of use.</p>
+                <h3 class="text-zinc-200 font-medium mt-4">1. License & Usage</h3>
+                <p>All Freezetech tools are provided free of charge. You are granted a non-exclusive license to use these tools for personal or business operations.</p>
+                <h3 class="text-zinc-200 font-medium mt-4">2. Liability</h3>
+                <p>Our tools are provided "as-is" without any warranties. We are not liable for business interruptions or data loss.</p>
+            </div>
+            <div class="mt-8 pt-4 border-t border-white/10 text-right">
+                <button onclick="closeModal('terms')" class="btn-outline px-5 py-2 rounded-lg text-sm font-medium hover:bg-white/5">Close</button>
+            </div>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="db.js"></script>
-    <script src="script.js"></script>
     <script>
-        // Initial setup
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            Router.init();
-            
-            // Update time
-            setInterval(() => {
-                const now = new Date();
-                document.getElementById('date-display').textContent = now.toLocaleDateString('en-US', { 
-                    month: 'long', 
-                    day: 'numeric', 
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            }, 1000);
+        // Smooth entrance animations
+        gsap.from(".fade-up", {
+            y: 30,
+            opacity: 0,
+            duration: 0.8,
+            stagger: 0.1,
+            ease: "power3.out"
+        });
+
+        // Hover glow effect for Bento Cards
+        const cards = document.querySelectorAll('.bento-card');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.background = `radial-gradient(600px circle at ${x}px ${y}px, rgba(255,255,255,0.06), rgba(24,24,27,0.4) 40%)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.background = `rgba(24, 24, 27, 0.4)`;
+            });
+        });
+
+        // Modal Logic
+        function openModal(type) {
+            document.getElementById(`modal-${type}`).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(type) {
+            document.getElementById(`modal-${type}`).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on outside click
+        document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+            backdrop.addEventListener('click', e => {
+                if(e.target === backdrop) {
+                    backdrop.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            });
         });
     </script>
 </body>
