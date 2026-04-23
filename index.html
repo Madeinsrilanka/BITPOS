@@ -5,23 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Freezetech | Premium Digital Ecosystem</title>
     
+    <!-- Google Fonts: Inter for that Figma typography feel -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Phosphor Icons (Clean, professional icon set) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
+    <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- GSAP for smooth animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
                     colors: {
-                        background: '#09090b', // Zinc 950 (Ultra dark, not pure black)
-                        surface: '#18181b',    // Zinc 900
-                        borderLine: 'rgba(255, 255, 255, 0.08)',
+                        // True Figma Dark Palette
+                        'bg-primary': '#0D0D0F',
+                        'bg-secondary': '#151518',
+                        'bg-tertiary': '#1C1C21',
+                        'border-subtle': 'rgba(255, 255, 255, 0.06)',
+                        'border-hover': 'rgba(255, 255, 255, 0.12)',
+                        'text-primary': '#F5F5F7',
+                        'text-secondary': '#98989E',
+                        'text-tertiary': '#6B6B73',
+                        'accent': '#FFFFFF',
                     }
                 }
             }
@@ -30,90 +43,115 @@
 
     <style>
         body {
-            background-color: theme('colors.background');
-            color: #ffffff;
+            background-color: #0D0D0F;
+            color: #F5F5F7;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-family: 'Inter', sans-serif;
         }
 
-        /* Subtle Top Glow (Very minimal, just to separate background from top) */
-        .ambient-glow {
-            position: absolute;
-            top: -20%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80vw;
-            height: 50vh;
-            background: radial-gradient(ellipse at top, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
-            z-index: -1;
+        /* Ambient background gradient - very subtle */
+        .bg-ambient {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(120, 119, 198, 0.08), transparent 60%),
+                        radial-gradient(ellipse 50% 50% at 80% 80%, rgba(100, 100, 120, 0.04), transparent 70%);
             pointer-events: none;
         }
 
-        /* Minimal Glass Navbar */
-        .nav-glass {
-            background: rgba(9, 9, 11, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid theme('colors.borderLine');
+        /* Grid pattern overlay for Figma-like texture */
+        .grid-pattern {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.025;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+            background-size: 64px 64px;
         }
 
-        /* Premium Bento Cards */
-        .bento-card {
-            background: rgba(24, 24, 27, 0.4); /* Zinc 900 with opacity */
-            border: 1px solid theme('colors.borderLine');
-            border-radius: 20px;
-            position: relative;
-            overflow: hidden;
+        /* Navigation Bar */
+        .nav-glass {
+            background: rgba(13, 13, 15, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             transition: all 0.3s ease;
         }
+        .nav-glass.scrolled {
+            background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 1px 20px rgba(0, 0, 0, 0.4);
+        }
 
+        /* Bento Cards - Core Design Element */
+        .bento-card {
+            background: #151518;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 24px;
+            transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+        }
         .bento-card:hover {
-            background: rgba(24, 24, 27, 0.8);
-            border-color: rgba(255, 255, 255, 0.15);
+            background: #1C1C21;
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
         }
 
-        /* Minimal Text Gradient for Headings */
-        .text-shimmer {
-            background: linear-gradient(to right, #ffffff 20%, #a1a1aa 50%, #ffffff 80%);
+        /* Subtle text gradient for main heading */
+        .text-gradient {
+            background: linear-gradient(135deg, #FFFFFF 0%, #C0C0C8 40%, #9A9AA5 70%, #D0D0DB 100%);
             background-size: 200% auto;
-            color: transparent;
             -webkit-background-clip: text;
-            animation: shimmer 4s linear infinite;
+            background-clip: text;
+            color: transparent;
+            animation: gradientShift 6s ease-in-out infinite alternate;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% center; }
+            100% { background-position: 100% center; }
         }
 
-        @keyframes shimmer {
-            to { background-position: 200% center; }
+        /* Buttons */
+        .btn-primary {
+            background: #FFFFFF;
+            color: #0D0D0F;
+            font-weight: 600;
+            border-radius: 100px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            letter-spacing: -0.01em;
         }
-
-        /* Premium White Button */
-        .btn-premium {
-            background: #ffffff;
-            color: #09090b;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 14px 0 rgba(255, 255, 255, 0.1);
-        }
-        .btn-premium:hover {
-            background: #e4e4e7;
+        .btn-primary:hover {
+            background: #E8E8ED;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
         }
-
-        /* Minimal Outline Button */
-        .btn-outline {
+        .btn-secondary {
             background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            transition: all 0.2s ease;
+            color: #F5F5F7;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 100px;
+            font-weight: 500;
+            transition: all 0.25s ease;
         }
-        .btn-outline:hover {
+        .btn-secondary:hover {
             background: rgba(255, 255, 255, 0.05);
             border-color: rgba(255, 255, 255, 0.3);
         }
 
-        /* Modals */
+        /* Modal Design */
         .modal-backdrop {
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease;
@@ -123,235 +161,392 @@
             pointer-events: all;
         }
         .modal-content {
-            transform: translateY(20px);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: #1C1C21;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            transform: translateY(20px) scale(0.97);
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
         }
         .modal-backdrop.active .modal-content {
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
         }
 
-        /* Custom Scrollbar for a clean look */
-        ::-webkit-scrollbar { width: 6px; }
+        /* Custom thin scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+        ::-webkit-scrollbar-thumb { background: #3A3A42; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525B; }
+
+        /* Animations */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
-<body>
+<body class="antialiased">
 
-    <div class="ambient-glow"></div>
+    <!-- Background Elements -->
+    <div class="bg-ambient"></div>
+    <div class="grid-pattern"></div>
 
-    <nav class="fixed w-full z-50 nav-glass py-4 px-6 md:px-12">
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed w-full z-50 nav-glass py-4 px-6 md:px-12 transition-all duration-300">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <a href="#" class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-                    <i class="ph-bold ph-cube text-xl text-background"></i>
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-lg shadow-black/20 group-hover:scale-105 transition-transform duration-300">
+                    <i class="ph-bold ph-cube text-xl text-[#0D0D0F]"></i>
                 </div>
-                <span class="text-lg font-semibold tracking-tight">Freezetech</span>
+                <span class="text-lg font-semibold tracking-tight text-white">Freezetech</span>
             </a>
-            <div class="hidden md:flex gap-8 text-sm text-zinc-400 font-medium">
-                <a href="#ecosystem" class="hover:text-white transition-colors">Products</a>
-                <a href="#features" class="hover:text-white transition-colors">Features</a>
-                <button onclick="openModal('privacy')" class="hover:text-white transition-colors">Privacy</button>
+            
+            <div class="hidden md:flex items-center gap-8 text-sm text-[#98989E] font-medium">
+                <a href="#ecosystem" class="hover:text-white transition-colors duration-200">Products</a>
+                <a href="#features" class="hover:text-white transition-colors duration-200">Features</a>
+                <button onclick="openModal('privacy')" class="hover:text-white transition-colors duration-200">Privacy</button>
+                <button onclick="openModal('terms')" class="hover:text-white transition-colors duration-200">Terms</button>
             </div>
-            <a href="#ecosystem" class="btn-premium text-sm font-semibold px-5 py-2 rounded-full">
+            
+            <a href="#ecosystem" class="btn-primary text-sm px-5 py-2.5 hidden sm:inline-flex items-center gap-2">
                 Get Started
+                <i class="ph-bold ph-arrow-right text-xs"></i>
             </a>
         </div>
     </nav>
 
-    <section class="relative min-h-screen flex items-center justify-center pt-24 px-6">
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center pt-28 pb-20 px-6">
         <div class="max-w-4xl mx-auto text-center z-10">
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 mb-8 fade-up text-xs font-medium text-zinc-300">
-                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                100% Free Ecosystem. Open to everyone.
+            <!-- Status Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/[0.03] mb-10 text-xs font-medium text-[#98989E] backdrop-blur-sm">
+                <span class="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.5)]"></span>
+                All tools free & open to everyone
             </div>
             
-            <h1 class="text-5xl md:text-7xl font-semibold tracking-tighter mb-6 fade-up text-shimmer" style="animation-delay: 0.1s;">
-                Build your workflow <br> with precision.
+            <!-- Main Headline -->
+            <h1 class="text-5xl md:text-7xl font-semibold tracking-tighter mb-8 leading-[1.1] text-gradient">
+                Build your workflow <br>with precision.
             </h1>
             
-            <p class="text-lg text-zinc-400 max-w-2xl mx-auto mb-10 fade-up font-light" style="animation-delay: 0.2s;">
-                A minimal, high-performance suite of tools including Point of Sale and VPN services. Designed for modern professionals, completely free.
+            <!-- Subtext -->
+            <p class="text-lg md:text-xl text-[#98989E] max-w-2xl mx-auto mb-12 font-light leading-relaxed">
+                A minimal, high-performance suite of tools — Point of Sale, VPN, and mobile solutions. 
+                <span class="text-[#C0C0C8] font-normal">Designed for modern professionals, completely free.</span>
             </p>
             
-            <div class="flex flex-col sm:flex-row gap-4 justify-center fade-up" style="animation-delay: 0.3s;">
-                <a href="#ecosystem" class="btn-premium px-6 py-3 rounded-full text-sm font-semibold flex items-center justify-center gap-2">
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#ecosystem" class="btn-primary px-8 py-3.5 text-sm flex items-center justify-center gap-2">
                     Explore Ecosystem
+                    <i class="ph-bold ph-arrow-right"></i>
                 </a>
-                <button onclick="openModal('terms')" class="btn-outline px-6 py-3 rounded-full text-sm font-semibold flex items-center justify-center gap-2">
-                    Read the Docs
-                </button>
+                <a href="#features" class="btn-secondary px-8 py-3.5 text-sm flex items-center justify-center gap-2">
+                    Learn More
+                </a>
             </div>
+        </div>
+        
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[#6B6B73] text-xs">
+            <span class="tracking-widest uppercase">Scroll</span>
+            <i class="ph-bold ph-caret-down animate-bounce"></i>
         </div>
     </section>
 
+    <!-- Ecosystem / Products Section -->
     <section id="ecosystem" class="py-24 px-6 md:px-12 relative z-10">
         <div class="max-w-6xl mx-auto">
-            <div class="mb-12">
-                <h2 class="text-2xl md:text-3xl font-semibold mb-3 tracking-tight">Our Products</h2>
-                <p class="text-zinc-400 text-sm md:text-base">One unified architecture for your operations.</p>
+            <!-- Section Header -->
+            <div class="mb-16 text-center md:text-left">
+                <span class="text-xs font-semibold tracking-widest uppercase text-[#6B6B73] mb-4 block">Our Ecosystem</span>
+                <h2 class="text-3xl md:text-4xl font-semibold mb-4 tracking-tight text-white">Products built for clarity.</h2>
+                <p class="text-[#98989E] text-base md:text-lg max-w-2xl">One unified architecture for your operations. No clutter, no noise.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bento-card md:col-span-2 p-8 flex flex-col justify-between group">
-                    <div class="flex justify-between items-start mb-12">
-                        <div class="w-12 h-12 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
-                            <i class="ph ph-desktop text-2xl text-zinc-200"></i>
+            <!-- Bento Grid Layout -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                
+                <!-- Pixelpos (Main Card) -->
+                <div class="bento-card md:col-span-2 p-8 md:p-10 flex flex-col justify-between group min-h-[320px]">
+                    <div class="flex justify-between items-start mb-16">
+                        <div class="w-12 h-12 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center group-hover:bg-white/[0.1] transition-colors">
+                            <i class="ph-bold ph-desktop text-2xl text-[#D0D0DB]"></i>
                         </div>
-                        <span class="text-xs font-medium text-zinc-500 bg-white/5 px-3 py-1 rounded-full border border-white/5">v1.0 Live</span>
+                        <span class="text-xs font-medium text-[#6B6B73] bg-white/[0.04] px-3 py-1.5 rounded-full border border-white/[0.06]">Stable v1.0</span>
                     </div>
                     <div>
-                        <h3 class="text-2xl font-semibold mb-2 tracking-tight">Pixelpos</h3>
-                        <p class="text-zinc-400 text-sm max-w-md mb-6 leading-relaxed">
-                            A highly optimized desktop & web Point of Sale. Manage your inventory and track sales with an interface that gets out of your way.
+                        <h3 class="text-2xl md:text-3xl font-semibold mb-3 tracking-tight text-white">Pixelpos</h3>
+                        <p class="text-[#98989E] text-sm md:text-base max-w-lg mb-8 leading-relaxed">
+                            A highly optimized desktop & web Point of Sale. Manage inventory, track sales, and process transactions with an interface that gets out of your way.
                         </p>
-                        <a href="#" class="inline-flex items-center gap-2 text-sm font-medium text-white hover:text-zinc-300 transition-colors">
-                            Launch Web App <i class="ph-bold ph-arrow-right"></i>
+                        <a href="#" class="inline-flex items-center gap-2 text-sm font-medium text-white hover:text-[#C0C0C8] transition-colors group/link">
+                            Launch Web App 
+                            <i class="ph-bold ph-arrow-right group-hover/link:translate-x-1 transition-transform"></i>
                         </a>
                     </div>
                 </div>
 
-                <div class="bento-card p-8 flex flex-col justify-between group">
-                    <div class="mb-12">
-                        <div class="w-12 h-12 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
-                            <i class="ph ph-shield-check text-2xl text-zinc-200"></i>
+                <!-- PixelVpn (Tall Card) -->
+                <div class="bento-card p-8 md:p-10 flex flex-col justify-between group min-h-[320px]">
+                    <div class="mb-16">
+                        <div class="w-12 h-12 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center group-hover:bg-white/[0.1] transition-colors">
+                            <i class="ph-bold ph-shield-check text-2xl text-[#D0D0DB]"></i>
                         </div>
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold mb-2 tracking-tight">PixelVpn</h3>
-                        <p class="text-zinc-400 text-sm mb-6 leading-relaxed">
-                            Secure, log-free browsing with military-grade encryption. Fast and entirely free.
+                        <h3 class="text-2xl font-semibold mb-3 tracking-tight text-white">PixelVpn</h3>
+                        <p class="text-[#98989E] text-sm mb-8 leading-relaxed">
+                            Secure, log-free browsing. Military-grade encryption with zero compromises on speed. Entirely free.
                         </p>
-                        <a href="#" class="inline-flex items-center gap-2 text-sm font-medium text-white hover:text-zinc-300 transition-colors">
-                            Download <i class="ph-bold ph-download-simple"></i>
+                        <a href="#" class="inline-flex items-center gap-2 text-sm font-medium text-white hover:text-[#C0C0C8] transition-colors group/link">
+                            Download Now 
+                            <i class="ph-bold ph-download-simple group-hover/link:translate-y-0.5 transition-transform"></i>
                         </a>
                     </div>
                 </div>
 
-                <div class="bento-card md:col-span-3 p-8 flex flex-col md:flex-row items-center justify-between group">
-                    <div class="md:w-2/3 mb-6 md:mb-0">
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="w-12 h-12 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
-                                <i class="ph ph-device-mobile text-2xl text-zinc-200"></i>
+                <!-- Pixelpos Mobile (Wide Bottom Card) -->
+                <div class="bento-card md:col-span-3 p-8 md:p-10 flex flex-col md:flex-row items-center justify-between group gap-6">
+                    <div class="md:w-2/3">
+                        <div class="flex items-center gap-4 mb-5">
+                            <div class="w-12 h-12 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center group-hover:bg-white/[0.1] transition-colors">
+                                <i class="ph-bold ph-device-mobile text-2xl text-[#D0D0DB]"></i>
                             </div>
-                            <h3 class="text-2xl font-semibold tracking-tight">Pixelpos Mobile</h3>
+                            <h3 class="text-2xl md:text-3xl font-semibold tracking-tight text-white">Pixelpos Mobile</h3>
                         </div>
-                        <p class="text-zinc-400 text-sm max-w-xl leading-relaxed">
+                        <p class="text-[#98989E] text-sm md:text-base max-w-xl leading-relaxed">
                             Extend your point of sale to your pocket. Scan items using your camera, accept payments, and sync instantly to your main database.
                         </p>
                     </div>
-                    <div>
-                        <button class="btn-premium px-6 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap">
+                    <div class="flex-shrink-0">
+                        <a href="#" class="btn-primary px-8 py-3 text-sm flex items-center gap-2">
                             Get the App
-                        </button>
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <footer class="border-t border-white/10 py-10 px-6 mt-10">
-        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-2 text-zinc-300">
-                <i class="ph-fill ph-cube text-lg"></i>
-                <span class="font-medium text-sm">Freezetech</span>
+    <!-- Features Section (Why Freezetech) -->
+    <section id="features" class="py-24 px-6 md:px-12 relative z-10 border-t border-white/[0.05]">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <span class="text-xs font-semibold tracking-widest uppercase text-[#6B6B73] mb-4 block">Why Freezetech</span>
+                <h2 class="text-3xl md:text-4xl font-semibold mb-4 tracking-tight text-white">Designed for performance.</h2>
+                <p class="text-[#98989E] text-base md:text-lg max-w-xl mx-auto">Three principles that guide every product we build.</p>
             </div>
-            <div class="flex gap-6 text-xs text-zinc-500 font-medium">
-                <button onclick="openModal('privacy')" class="hover:text-zinc-300 transition-colors">Privacy</button>
-                <button onclick="openModal('terms')" class="hover:text-zinc-300 transition-colors">Terms</button>
-                <span class="text-zinc-600">|</span>
-                <span class="text-zinc-500">Built by Shafeer Cassim</span>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="bento-card p-8 text-center group">
+                    <div class="w-12 h-12 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center mx-auto mb-6 group-hover:bg-white/[0.1] transition-colors">
+                        <i class="ph-bold ph-lightning text-2xl text-[#D0D0DB]"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-3 text-white">Blazing Speed</h3>
+                    <p class="text-[#98989E] text-sm leading-relaxed">Optimized codebases and edge delivery ensure every interaction feels instantaneous.</p>
+                </div>
+                <div class="bento-card p-8 text-center group">
+                    <div class="w-12 h-12 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center mx-auto mb-6 group-hover:bg-white/[0.1] transition-colors">
+                        <i class="ph-bold ph-lock-key text-2xl text-[#D0D0DB]"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-3 text-white">Zero-Log Security</h3>
+                    <p class="text-[#98989E] text-sm leading-relaxed">We don't track you. End-to-end encryption and strict no-log policies come standard.</p>
+                </div>
+                <div class="bento-card p-8 text-center group">
+                    <div class="w-12 h-12 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center mx-auto mb-6 group-hover:bg-white/[0.1] transition-colors">
+                        <i class="ph-bold ph-gift text-2xl text-[#D0D0DB]"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-3 text-white">Free Forever</h3>
+                    <p class="text-[#98989E] text-sm leading-relaxed">No trials, no premium tiers, no ads. Every feature is unlocked for everyone.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/[0.06] py-12 px-6 mt-10">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-3 text-[#98989E]">
+                <div class="w-8 h-8 rounded-lg bg-white/[0.06] border border-white/[0.08] flex items-center justify-center">
+                    <i class="ph-fill ph-cube text-base text-white"></i>
+                </div>
+                <span class="font-medium text-sm text-white">Freezetech</span>
+            </div>
+            
+            <div class="flex flex-wrap items-center justify-center gap-5 text-xs text-[#6B6B73] font-medium">
+                <button onclick="openModal('privacy')" class="hover:text-white transition-colors duration-200">Privacy Policy</button>
+                <button onclick="openModal('terms')" class="hover:text-white transition-colors duration-200">Terms of Service</button>
+                <span class="text-[#3A3A42]">|</span>
+                <span>Built by Shafeer Cassim</span>
+                <span class="text-[#3A3A42]">|</span>
+                <span>&copy; <span id="current-year"></span> Freezetech</span>
             </div>
         </div>
     </footer>
 
+    <!-- Privacy Policy Modal -->
     <div id="modal-privacy" class="fixed inset-0 z-[100] modal-backdrop flex items-center justify-center p-4">
-        <div class="modal-content w-full max-w-lg bg-[#18181b] border border-white/10 rounded-2xl p-6 md:p-8 flex flex-col shadow-2xl">
-            <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
-                <h2 class="text-lg font-semibold tracking-tight text-white">Privacy Policy</h2>
-                <button onclick="closeModal('privacy')" class="text-zinc-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-full p-1.5">
-                    <i class="ph-bold ph-x"></i>
+        <div class="modal-content w-full max-w-lg p-8 md:p-10 flex flex-col">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-semibold tracking-tight text-white">Privacy Policy</h2>
+                <button onclick="closeModal('privacy')" class="text-[#6B6B73] hover:text-white transition-colors bg-white/[0.05] hover:bg-white/[0.1] rounded-full p-2">
+                    <i class="ph-bold ph-x text-lg"></i>
                 </button>
             </div>
-            <div class="overflow-y-auto text-zinc-400 text-sm space-y-4 pr-2">
+            <div class="overflow-y-auto text-[#98989E] text-sm space-y-5 pr-2 leading-relaxed max-h-[60vh]">
                 <p>At Freezetech, we believe your data is yours. This policy outlines our minimalist approach to data collection.</p>
-                <h3 class="text-zinc-200 font-medium mt-4">Zero-Log Architecture</h3>
-                <p>Pixelpos and PixelVpn are designed to operate without tracking your personal usage. We do not sell data to third parties.</p>
-                <h3 class="text-zinc-200 font-medium mt-4">Local Storage</h3>
-                <p>Where possible, your data remains strictly on your device or the secure servers you explicitly connect to.</p>
+                <div>
+                    <h3 class="text-white font-medium mb-2">Zero-Log Architecture</h3>
+                    <p>Pixelpos and PixelVpn are designed to operate without tracking your personal usage. We do not sell data to third parties.</p>
+                </div>
+                <div>
+                    <h3 class="text-white font-medium mb-2">Local Storage</h3>
+                    <p>Where possible, your data remains strictly on your device or the secure servers you explicitly connect to.</p>
+                </div>
+                <div>
+                    <h3 class="text-white font-medium mb-2">No Ad Tracking</h3>
+                    <p>We don't embed tracking pixels, analytics scripts, or advertising SDKs in any of our tools.</p>
+                </div>
             </div>
-            <div class="mt-8 pt-4 border-t border-white/10 text-right">
-                <button onclick="closeModal('privacy')" class="btn-premium px-5 py-2 rounded-lg text-sm font-medium">Got it</button>
+            <div class="mt-8 pt-6 border-t border-white/[0.08] flex justify-end">
+                <button onclick="closeModal('privacy')" class="btn-primary px-6 py-2.5 text-sm">Understood</button>
             </div>
         </div>
     </div>
 
+    <!-- Terms of Service Modal -->
     <div id="modal-terms" class="fixed inset-0 z-[100] modal-backdrop flex items-center justify-center p-4">
-        <div class="modal-content w-full max-w-lg bg-[#18181b] border border-white/10 rounded-2xl p-6 md:p-8 flex flex-col shadow-2xl">
-            <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
-                <h2 class="text-lg font-semibold tracking-tight text-white">Terms of Service</h2>
-                <button onclick="closeModal('terms')" class="text-zinc-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-full p-1.5">
-                    <i class="ph-bold ph-x"></i>
+        <div class="modal-content w-full max-w-lg p-8 md:p-10 flex flex-col">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-xl font-semibold tracking-tight text-white">Terms of Service</h2>
+                <button onclick="closeModal('terms')" class="text-[#6B6B73] hover:text-white transition-colors bg-white/[0.05] hover:bg-white/[0.1] rounded-full p-2">
+                    <i class="ph-bold ph-x text-lg"></i>
                 </button>
             </div>
-            <div class="overflow-y-auto text-zinc-400 text-sm space-y-4 pr-2">
+            <div class="overflow-y-auto text-[#98989E] text-sm space-y-5 pr-2 leading-relaxed max-h-[60vh]">
                 <p>By accessing the Freezetech ecosystem, you agree to the following terms of use.</p>
-                <h3 class="text-zinc-200 font-medium mt-4">1. License & Usage</h3>
-                <p>All Freezetech tools are provided free of charge. You are granted a non-exclusive license to use these tools for personal or business operations.</p>
-                <h3 class="text-zinc-200 font-medium mt-4">2. Liability</h3>
-                <p>Our tools are provided "as-is" without any warranties. We are not liable for business interruptions or data loss.</p>
+                <div>
+                    <h3 class="text-white font-medium mb-2">1. License & Usage</h3>
+                    <p>All Freezetech tools are provided free of charge. You are granted a non-exclusive license to use these tools for personal or business operations.</p>
+                </div>
+                <div>
+                    <h3 class="text-white font-medium mb-2">2. Liability</h3>
+                    <p>Our tools are provided "as-is" without any warranties. We are not liable for business interruptions or data loss.</p>
+                </div>
+                <div>
+                    <h3 class="text-white font-medium mb-2">3. Acceptable Use</h3>
+                    <p>You agree not to misuse our tools for illegal activities or to violate the security of our systems.</p>
+                </div>
             </div>
-            <div class="mt-8 pt-4 border-t border-white/10 text-right">
-                <button onclick="closeModal('terms')" class="btn-outline px-5 py-2 rounded-lg text-sm font-medium hover:bg-white/5">Close</button>
+            <div class="mt-8 pt-6 border-t border-white/[0.08] flex justify-end">
+                <button onclick="closeModal('terms')" class="btn-secondary px-6 py-2.5 text-sm">Close</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Smooth entrance animations
-        gsap.from(".fade-up", {
-            y: 30,
-            opacity: 0,
-            duration: 0.8,
-            stagger: 0.1,
-            ease: "power3.out"
+        // Set current year
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // GSAP Animations for fade-up elements
+        gsap.utils.toArray('.fade-up').forEach((element, i) => {
+            gsap.fromTo(element, 
+                { y: 30, opacity: 0 },
+                {
+                    y: 0,
+                    opacity: 1,
+                    duration: 0.8,
+                    delay: i * 0.08,
+                    ease: "power3.out",
+                    scrollTrigger: {
+                        trigger: element,
+                        start: "top 85%",
+                        toggleActions: "play none none none"
+                    }
+                }
+            );
         });
 
-        // Hover glow effect for Bento Cards
-        const cards = document.querySelectorAll('.bento-card');
-        cards.forEach(card => {
-            card.addEventListener('mousemove', e => {
+        // Navigation scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Bento card hover glow effect
+        document.querySelectorAll('.bento-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
                 const rect = card.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
-                card.style.background = `radial-gradient(600px circle at ${x}px ${y}px, rgba(255,255,255,0.06), rgba(24,24,27,0.4) 40%)`;
+                card.style.background = `radial-gradient(700px circle at ${x}px ${y}px, rgba(255,255,255,0.04), #151518 50%)`;
             });
             card.addEventListener('mouseleave', () => {
-                card.style.background = `rgba(24, 24, 27, 0.4)`;
+                card.style.background = '#151518';
             });
         });
 
         // Modal Logic
         function openModal(type) {
-            document.getElementById(`modal-${type}`).classList.add('active');
-            document.body.style.overflow = 'hidden';
+            const modal = document.getElementById(`modal-${type}`);
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
         }
 
         function closeModal(type) {
-            document.getElementById(`modal-${type}`).classList.remove('active');
-            document.body.style.overflow = 'auto';
+            const modal = document.getElementById(`modal-${type}`);
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
         }
 
-        // Close modal on outside click
+        // Close modals on backdrop click
         document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-            backdrop.addEventListener('click', e => {
-                if(e.target === backdrop) {
+            backdrop.addEventListener('click', (e) => {
+                if (e.target === backdrop) {
                     backdrop.classList.remove('active');
                     document.body.style.overflow = 'auto';
                 }
             });
         });
+
+        // Close modals with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-backdrop.active').forEach(modal => {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                });
+            }
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href === '#') return;
+                const target = document.querySelector(href);
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
     </script>
+
 </body>
 </html>
