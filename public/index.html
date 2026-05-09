@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixelstream | Premium Video Downloader</title>
+    <meta name="description" content="Download YouTube and Facebook videos in high quality (MP4, MP3, 1080p, 2K, 4K) easily with Pixelstream.">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Animated Background Orbs -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="#" class="nav-logo">Pixel<span>stream</span></a>
+        <ul class="nav-menu">
+            <li><a href="#">Downloader</a></li>
+            <li><a href="#">Features</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <header class="hero">
+            <span class="pill-badge">Premium Video Downloader</span>
+            <h1 class="hero-title">Download any video <span>in maximum quality.</span></h1>
+            <p class="hero-description">Fast, ad-free, and reliable downloads from YouTube and Facebook. Get exactly what you need.</p>
+        </header>
+
+        <section class="downloader-section bento-card">
+            <form id="downloadForm" class="input-group">
+                <input type="url" id="videoUrl" placeholder="Paste YouTube or Facebook video link here..." required>
+                <button type="submit" id="fetchBtn" class="btn btn-primary">
+                    <span class="btn-text">Fetch Video</span>
+                    <i class="fas fa-arrow-right"></i>
+                    <div class="spinner" id="btnSpinner" style="display: none;"></div>
+                </button>
+            </form>
+            <div id="errorMsg" class="error-message" style="display: none;"></div>
+        </section>
+
+        <section id="resultsSection" class="results-section bento-card" style="display: none;">
+            <div class="video-info">
+                <img id="videoThumbnail" src="" alt="Video Thumbnail" class="thumbnail">
+                <div class="video-details">
+                    <h2 id="videoTitle" class="video-title">Video Title</h2>
+                    <p id="videoDuration" class="video-duration">Duration: 00:00</p>
+                </div>
+            </div>
+
+            <div class="download-options">
+                <h3>Download Options</h3>
+                <div class="format-tabs">
+                    <button class="tab-btn active" data-target="video-formats">Video (MP4)</button>
+                    <button class="tab-btn" data-target="audio-formats">Audio (MP3/M4A)</button>
+                </div>
+                
+                <div id="video-formats" class="format-grid tab-content active">
+                    <!-- Video buttons will be injected here -->
+                </div>
+                
+                <div id="audio-formats" class="format-grid tab-content" style="display: none;">
+                    <!-- Audio buttons will be injected here -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Custom Cursor Logic
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', function (e) {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            // Adding a slight delay to the outline for a smooth effect
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        // Add hover effect to interactive elements
+        const interactiveElements = document.querySelectorAll('a, button, input');
+        interactiveElements.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursorOutline.style.width = '60px';
+                cursorOutline.style.height = '60px';
+                cursorOutline.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            });
+            el.addEventListener('mouseleave', () => {
+                cursorOutline.style.width = '40px';
+                cursorOutline.style.height = '40px';
+                cursorOutline.style.backgroundColor = 'transparent';
+            });
+        });
+    </script>
+</body>
+</html>

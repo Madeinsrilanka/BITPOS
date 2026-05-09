@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shafeer Cassim | Premium Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        /* CSS Variables for Premium Dark Theme */
+        :root {
+            --bg-color: #050505;
+            --surface: rgba(255, 255, 255, 0.03);
+            --surface-hover: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.08);
+            --primary: #8b5cf6;
+            /* Vibrant Purple */
+            --secondary: #3b82f6;
+            /* Electric Blue */
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
+            --glass-blur: blur(12px);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none;
+            /* Custom cursor takes over */
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background Orbs */
+        .bg-orbs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            background: #050505;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float 20s infinite ease-in-out alternate;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--primary);
+            top: -10%;
+            left: -10%;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--secondary);
+            bottom: -20%;
+            right: -10%;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(100px, 50px) scale(1.2);
+            }
+        }
+
+        /* Custom Cursor */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--text-main);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 5%;
+        }
+
+        /* Premium Glass Navbar */
+        .navbar {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 1300px;
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 15px 30px;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            text-decoration: none;
+            letter-spacing: -1px;
+        }
+
+        .nav-logo span {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-menu a:hover {
+            color: var(--text-main);
+        }
+
+        .nav-menu a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.3s ease;
+        }
+
+        .nav-menu a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            margin-top: 50px;
+        }
+
+        .pill-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            color: var(--text-muted);
+            backdrop-filter: blur(5px);
+            animation: fadeUp 1s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 6vw, 6rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -2px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 1s ease 0.2s forwards;
+        }
+
+        .hero-title span {
+            display: block;
+            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-description {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 1s ease 0.4s forwards;
+        }
+
+        /* Premium Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 36px;
+            border-radius: 100px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            border: none;
+            position: relative;
+            overflow: hidden;
+            gap: 10px;
+            z-index: 1;
+        }
+
+        .btn-primary {
+            background: var(--text-main);
+            color: var(--bg-color);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            z-index: -1;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
+        .btn-primary:hover {
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Sections General */
+        section {
+            padding: 120px 0;
+        }
+
+        .section-header {
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 1rem;
+        }
+
+        /* Bento Box Grid (About & Stats) */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: auto auto;
+            gap: 20px;
+        }
+
+        .bento-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            backdrop-filter: var(--glass-blur);
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .bento-card:hover {
+            background: var(--surface-hover);
+            transform: translateY(-5px);
+        }
+
+        .bento-about {
+            grid-column: span 2;
+        }
+
+        .bento-about p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-top: 1rem;
+        }
+
+        .bento-photo {
+            grid-column: span 1;
+            grid-row: span 2;
+            background: linear-gradient(45deg, var(--surface), rgba(139, 92, 246, 0.1));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6rem;
+            color: var(--primary);
+            border-radius: 24px;
+            min-height: 300px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bento-photo::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .bento-stat {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-num {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--text-main), var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Work Section */
+        .work-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .work-card {
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .work-img-wrapper {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            overflow: hidden;
+            border-radius: 24px;
+        }
+
+        .work-img-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, 0.9));
+            z-index: 1;
+        }
+
+        /* Using CSS gradients as premium placeholders */
+        .img-placeholder-1 {
+            background: linear-gradient(45deg, #1f2937, #111827);
+        }
+
+        .img-placeholder-2 {
+            background: linear-gradient(45deg, #374151, #1f2937);
+        }
+
+        .img-placeholder-3 {
+            background: linear-gradient(45deg, #4b5563, #374151);
+        }
+
+        .img-placeholder-4 {
+            background: linear-gradient(45deg, #111827, #000000);
+        }
+
+        .work-img-wrapper div {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .work-card:hover .work-img-wrapper div {
+            transform: scale(1.05);
+        }
+
+        .play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            z-index: 2;
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+
+        .work-card:hover .play-btn {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .work-info {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            right: 30px;
+            z-index: 2;
+        }
+
+        .work-info span {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .work-info h3 {
+            font-size: 1.5rem;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        /* Contact Section Grid */
+        .contact-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 40px;
+        }
+
+        .contact-form {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 40px;
+            border-radius: 24px;
+            backdrop-filter: var(--glass-blur);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 18px 24px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .contact-links {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .social-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 30px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .social-card:hover {
+            background: var(--surface-hover);
+            transform: translateX(10px);
+            border-color: var(--primary);
+        }
+
+        .social-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 0;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .bento-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bento-about,
+            .bento-photo {
+                grid-column: span 1;
+            }
+
+            .contact-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-menu {
+                display: none;
+                /* Add a hamburger menu logic here if needed */
+            }
+
+            .hero-title {
+                font-size: 3.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <nav class="navbar">
+        <a href="#" class="nav-logo">Shafeer<span>.</span></a>
+        <ul class="nav-menu">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#work">Work</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+        <a href="#contact" class="btn btn-primary" style="padding: 10px 24px; font-size: 0.9rem;">Hire Me</a>
+    </nav>
+
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="pill-badge">Available for freelance</div>
+                <h1 class="hero-title">
+                    <span>Shaping Stories</span>
+                    Through the Cut.
+                </h1>
+                <p class="hero-description">Professional Editor & Visual Architect. Transforming raw footage into
+                    compelling narratives with precision and creative intuition.</p>
+                <div class="reveal" style="animation-delay: 0.6s;">
+                    <a href="#work" class="btn btn-primary">
+                        View Showreel <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about">
+        <div class="container reveal">
+            <div class="section-header">
+                <h2 class="section-title">Behind the timeline.</h2>
+            </div>
+
+            <div class="bento-grid">
+                <div class="bento-card bento-about">
+                    <h3>About Me</h3>
+                    <p>With over a decade navigating timelines and color wheels, I specialize in extracting the core
+                        emotion from raw footage. From high-octane commercial edits to deeply emotional documentaries,
+                        my philosophy remains the same: rhythm is everything.</p>
+                </div>
+
+                <div class="bento-card bento-photo">
+                    <i class="fas fa-video"></i>
+                </div>
+
+                <div class="bento-card bento-stat">
+                    <span class="stat-num">10+</span>
+                    <span style="color: var(--text-muted)">Years Experience</span>
+                </div>
+
+                <div class="bento-card bento-stat">
+                    <span class="stat-num">200+</span>
+                    <span style="color: var(--text-muted)">Projects Delivered</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="work">
+        <div class="container reveal">
+            <div class="section-header">
+                <h2 class="section-title">Selected Works.</h2>
+            </div>
+
+            <div class="work-grid">
+                <div class="work-card reveal">
+                    <div class="work-img-wrapper">
+                        <div class="img-placeholder-1"></div>
+                        <div class="play-btn"><i class="fas fa-play"></i></div>
+                    </div>
+                    <div class="work-info">
+                        <span>Documentary</span>
+                        <h3>Echoes of the City</h3>
+                    </div>
+                </div>
+
+                <div class="work-card reveal">
+                    <div class="work-img-wrapper">
+                        <div class="img-placeholder-2"></div>
+                        <div class="play-btn"><i class="fas fa-play"></i></div>
+                    </div>
+                    <div class="work-info">
+                        <span>Music Video</span>
+                        <h3>Midnight Drive</h3>
+                    </div>
+                </div>
+
+                <div class="work-card reveal">
+                    <div class="work-img-wrapper">
+                        <div class="img-placeholder-3"></div>
+                        <div class="play-btn"><i class="fas fa-play"></i></div>
+                    </div>
+                    <div class="work-info">
+                        <span>Commercial</span>
+                        <h3>Nike - Motion</h3>
+                    </div>
+                </div>
+
+                <div class="work-card reveal">
+                    <div class="work-img-wrapper">
+                        <div class="img-placeholder-4"></div>
+                        <div class="play-btn"><i class="fas fa-play"></i></div>
+                    </div>
+                    <div class="work-info">
+                        <span>Short Film</span>
+                        <h3>The Last Frame</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <div class="container reveal">
+            <div class="section-header">
+                <h2 class="section-title">Let's create.</h2>
+            </div>
+
+            <div class="contact-wrapper">
+                <div class="contact-links">
+                    <a href="#" class="social-card">
+                        <div class="social-icon"><i class="fas fa-envelope"></i></div>
+                        <div>
+                            <span style="color: var(--text-muted); font-size: 0.9rem;">Email Me</span>
+                            <h3 style="font-size: 1.2rem;">shafeer@editor.com</h3>
+                        </div>
+                    </a>
+                    <a href="#" class="social-card">
+                        <div class="social-icon"><i class="fab fa-whatsapp"></i></div>
+                        <div>
+                            <span style="color: var(--text-muted); font-size: 0.9rem;">WhatsApp</span>
+                            <h3 style="font-size: 1.2rem;">+1 (234) 567-890</h3>
+                        </div>
+                    </a>
+                    <a href="#" class="social-card">
+                        <div class="social-icon"><i class="fab fa-instagram"></i></div>
+                        <div>
+                            <span style="color: var(--text-muted); font-size: 0.9rem;">Social</span>
+                            <h3 style="font-size: 1.2rem;">@shafeer.cuts</h3>
+                        </div>
+                    </a>
+                </div>
+
+                <form class="contact-form">
+                    <h3 style="margin-bottom: 24px; font-size: 1.5rem;">Send a message</h3>
+                    <div class="form-group">
+                        <input type="text" placeholder="What's your name?" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" placeholder="Your email address" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea rows="4" placeholder="Tell me about your project..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Send Inquiry</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Shafeer Cassim. Engineered with precision.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Custom Cursor Logic
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            // Adding a slight delay to the outline for a smooth trailing effect
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        // Hover effect for cursor on links and buttons
+        const interactables = document.querySelectorAll('a, button, .work-card');
+        interactables.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursorOutline.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                cursorOutline.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            });
+            el.addEventListener('mouseleave', () => {
+                cursorOutline.style.transform = 'translate(-50%, -50%) scale(1)';
+                cursorOutline.style.backgroundColor = 'transparent';
+            });
+        });
+
+        // Scroll Reveal Animations
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 100;
+
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        reveal(); // Trigger on load
+    </script>
+</body>
+
+</html>
